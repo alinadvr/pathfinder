@@ -5,6 +5,7 @@
 
 
 int main (void);
+
 // //Struct
 // typedef struct s_island t_island;
 // typedef struct s_link t_link;

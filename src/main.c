@@ -1,273 +1,200 @@
-#include <stdbool.h>
 #include <stdio.h>
-#include "pathfinder.h"
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 
-#define INT_MAX 2147483647
-#define MAX_LENGTH 10000
-// // A utility function to find the vertex with minimum
-// // distance value, from the set of vertices not yet included
-// // in shortest path tree
+#define MAX_ISLAND_NAME 50
+#define MAX_BRIDGES 100
 
-int minDistance(int dist[], bool sptSet[], int i_count)
-{
-    // Initialize min value
-    int min = INT_MAX, min_index;
- 
-    for (int v = 0; v < i_count; v++){
-        if (sptSet[v] == false && dist[v] <= min)
-            min = dist[v], min_index = v;
-    }
- 
-    return min_index;
-}
- 
-// A utility function to print the constructed distance
-// array
-// void printSolution(int dist[], int i_count)
-// {
-//     printf("Vertex \t\t Distance from Source\n");
-//     for (int i = 0; i < i_count; i++)
-//         printf("%d \t\t\t\t %d\n", i, dist[i]);
-// }
+typedef struct {
+    char island1[MAX_ISLAND_NAME];
+    char island2[MAX_ISLAND_NAME];
+    int length;
+} Bridge;
 
-void printPaths(int i_count, int result[][i_count], char **islands) {
-    for (int i = 0; i < i_count; i++) {
-        for (int j = i + 1; j < i_count; j++) {
-            char *start = islands[i];
-            char *end = islands[j];
-            int dist = result[i][j];
+typedef struct {
+    char **path;
+    int *distances;
+    int size;
+} Route;
 
-            char path[1000]; // Assuming a max path length of 1000 characters
-            sprintf(path, "%s -> %s", start, end);
-
-            printf("========================================\n");
-            printf("Path: %s\n", path);
-
-            if (dist == INT_MAX) {
-                printf("Route: No path found\n");
-                printf("Distance: No path found\n");
-            } else {
-                printf("Route: %s", start);
-
-                // Store the shortest path indices
-                int shortestPath[i_count];
-                shortestPath[0] = i;
-                shortestPath[1] = j;
-                int pathLength = 2;
-
-                // Find intermediate points for shortest paths
-                for (int k = 0; k < i_count; k++) {
-                    if (k != i && k != j) {
-                        if (result[i][k] + result[k][j] < dist) {
-                            // Found a shorter path, update distance and path
-                            dist = result[i][k] + result[k][j];
-                            shortestPath[0] = i;
-                            shortestPath[1] = k;
-                            shortestPath[2] = j;
-                            pathLength = 3;
-                        }
-                    }
-                }
-
-                // Print the shortest path route and distance
-                for (int k = 1; k < pathLength; k++) {
-                    printf(" -> %s", islands[shortestPath[k]]);
-                }
-
-                printf("\nDistance: ");
-                for (int k = 0; k < pathLength - 1; k++) {
-                    printf("%d", result[shortestPath[k]][shortestPath[k + 1]]);
-                    if (k != pathLength - 2) {
-                        printf(" + ");
-                    }
-                }
-                printf(" = %d\n", dist);
-            }
-
-            printf("========================================\n");
-        }
-    }
-}
-
-
-
-void printSolution(int i_count, int dist[][i_count]) {
-    printf("Shortest distances between every pair of vertices:\n");
-    for (int i = 0; i < i_count; i++) {
-        for (int j = 0; j < i_count; j++) {
-            if (dist[i][j] == INT_MAX)
-                printf("INF\t");
-            else
-                printf("%d\t", dist[i][j]);
-        }
-        printf("\n");
-    }
-}
- 
-// // Function that implements Dijkstra's single source
-// // shortest path algorithm for a graph represented using
-// // adjacency matrix representation
-void dijkstra(int i_count,int graph[][i_count], int dist[i_count][i_count], int src)
-{
-//  int dist[i_count][i_count];
-    bool sptSet[i_count];
-
-    for (int i = 0; i < i_count; i++) {
-    //     for (int j = 0; j < i_count; j++)
-    //         dist[i][j] = INT_MAX;
-        sptSet[i] = false;
-    }
-
-    dist[src][src] = 0;
-
-    for (int count = 0; count < i_count - 1; count++) {
-        int u = minDistance(dist[src], sptSet, i_count);
-
-        sptSet[u] = true;
-
-        for (int v = 0; v < i_count; v++) {
-            if (!sptSet[v] && graph[u][v] && dist[src][u] != INT_MAX &&
-                dist[src][u] + graph[u][v] < dist[src][v])
-                dist[src][v] = dist[src][u] + graph[u][v];
-        }
-    }
-
-    // printSolution(i_count, dist);
-    }
-
-int mx_atoi(char *str)
-{
- int res = 0; // Initialize result
-
- // Iterate through all characters of input string and
- // update result
- for (int i = 0; str[i] != '\0'; ++i) {
-     if (str[i]> '9' || str[i]<'0')
-         return -1;
-     res = res*10 + str[i] - '0';
- }
-
- // return result.
- return res;
-}
-
-
-int index_of(char **arr, char *str) {
-    for (int i = 0; arr[i] != NULL; i++) {
-        if (mx_strcmp(arr[i], str) == 0) {
+int findIslandIndex(char *island, char **islands, int numIslands) {
+    for (int i = 0; i < numIslands; i++) {
+        if (strcmp(island, islands[i]) == 0) {
             return i;
         }
     }
-    return -1;
+    return -1; // Island not found
 }
 
- 
-// driver's code
-int main(void)
-{
-    int fd = open("hard", O_RDONLY);
-    char *lineptr = mx_strnew(1);
-
-    mx_read_line(&lineptr, 1, '\n', fd);
-    mx_printstr(lineptr);
-    mx_printchar('\n');
-    int i_count = mx_atoi(lineptr);
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    char *islands[i_count];
-    for (int i = 0; i < i_count; i++) {
-        islands[i] = NULL;
-    }
-    int graph[i_count][i_count];
-
-    for (int i = 0; i < i_count; i++) {
-        for (int j = 0; j < i_count; j++) {
-            graph[i][j] = 0;
-
+int **initializeGraph(int numIslands, int defaultValue) {
+    int **graph = (int **)malloc(numIslands * sizeof(int *));
+    for (int i = 0; i < numIslands; i++) {
+        graph[i] = (int *)malloc(numIslands * sizeof(int));
+        for (int j = 0; j < numIslands; j++) {
+            graph[i][j] = (i == j) ? 0 : defaultValue; // Diagonal elements are 0, others default to INT_MAX
         }
     }
-
-
-
-    char *line = mx_strnew(MAX_LENGTH);
-    while(mx_read_line(&line, MAX_LENGTH, '\n', fd) > 0) {
-        
-mx_printstr(line);
-mx_printchar(' ');
-        char **bridge = mx_strsplit(line, ',');
-        int bridge_length = mx_atoi(bridge[1]);
-        char** current_island = mx_strsplit(bridge[0], '-');
-        mx_printstr(current_island[0]);
-        mx_printchar(' ');
-        int island_index_1 = index_of(islands, current_island[0]);
-        mx_printint(island_index_1);
-        mx_printchar(' ');
-        if(island_index_1 == -1) {
-            islands[i] = current_island[0];
-            k = i;
-            i++;
-        } else {
-            k = island_index_1;
-        }
-        int island_index_2 = index_of(islands, current_island[1]);
-        if(island_index_2 == -1) {
-            islands[i] = current_island[1];
-            j = i;
-            i++;
-        } else {
-            j = island_index_2;
-        }
-        
-        mx_printint(i);
-        mx_printchar(' ');
-        mx_printint(j);
-        mx_printchar(' ');
-        mx_printint(k);
-
-        graph[k][j] = bridge_length;
-        graph[j][k] = bridge_length;
-        mx_printchar('\n');
-    }
-    for (int i = 0; i < i_count; i++) {
-        for (int j = 0; j < i_count; j++) {
-            mx_printint(graph[i][j]);
-        }
-    }
-    /* Let us create the example graph discussed above */
-    // int graph[V][V] = { { 0, 4, 0, 0, 0, 0, 0, 8, 0 },
-    //                     { 4, 0, 8, 0, 0, 0, 0, 11, 0 },
-    //                     { 0, 8, 0, 7, 0, 4, 0, 0, 2 },
-    //                     { 0, 0, 7, 0, 9, 14, 0, 0, 0 },
-    //                     { 0, 0, 0, 9, 0, 10, 0, 0, 0 },
-    //                     { 0, 0, 4, 14, 10, 0, 2, 0, 0 },
-    //                     { 0, 0, 0, 0, 0, 2, 0, 1, 6 },
-    //                     { 8, 11, 0, 0, 0, 0, 1, 0, 7 },
-    //                     { 0, 0, 2, 0, 0, 0, 6, 7, 0 } };
- 
-    int result[i_count][i_count];
-    for (int i = 0; i < i_count; i++) {
-        for (int j = 0; j < i_count; j++)
-            result[i][j] = INT_MAX;
-    }
-    // Function call
-    for (int i = 0; i < i_count; i++) {
-        dijkstra(i_count, graph, result, i);
-    }
-
-// mx_printstr("RESULT\n");
-//     for(int i = 0; i < i_count; i++) {
-//         for(int j = 0; j < i_count; j++) {
-//             mx_printint(result[i][j]);
-//             mx_printchar(' ');
-//         }
-//         mx_printchar('\n');
-//     }
-
-    printPaths(i_count, result, islands);
-
-    close(fd);
-    
-    return 0;
+    return graph;
 }
 
+void populateGraph(int **graph, Bridge *bridges, int numBridges) {
+    for (int i = 0; i < numBridges; i++) {
+        int from = findIslandIndex(bridges[i].island1); // Function to find index of island in the graph
+        int to = findIslandIndex(bridges[i].island2);
+        int length = bridges[i].length;
+        if (from != -1 && to != -1) {
+            graph[from][to] = length;
+            graph[to][from] = length; // Assuming bi-directional connections
+        }
+    }
+}
+
+int parseInput(const char *filename, Bridge **bridges, int *numIslands) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "error: file %s does not exist\n", filename);
+        return 0;
+    }
+
+    if (fscanf(file, "%d", numIslands) != 1 || *numIslands <= 0) {
+        fprintf(stderr, "error: line 1 is not valid\n");
+        fclose(file);
+        return 0;
+    }
+
+    *bridges = (Bridge *) malloc(sizeof(Bridge) * MAX_BRIDGES);
+
+    int index = 0;
+    while (fscanf(file, "%49[^-]-%49[^,],%d", (*bridges)[index].island1, (*bridges)[index].island2,
+                  &(*bridges)[index].length) == 3) {
+        if ((*bridges)[index].length <= 0) {
+            fprintf(stderr, "error: line %d is not valid\n", index + 2);
+            fclose(file);
+            return 0;
+        }
+
+        for (int i = 0; i < index; i++) {
+            if ((strcmp((*bridges)[i].island1, (*bridges)[index].island1) == 0 &&
+                 strcmp((*bridges)[i].island2, (*bridges)[index].island2) == 0) ||
+                (strcmp((*bridges)[i].island1, (*bridges)[index].island2) == 0 &&
+                 strcmp((*bridges)[i].island2, (*bridges)[index].island1) == 0)) {
+                fprintf(stderr, "error: duplicate bridges\n");
+                fclose(file);
+                return 0;
+            }
+        }
+
+        index++;
+    }
+
+    fclose(file);
+    return 1;
+}
+
+Route createRoute(int size) {
+    Route newRoute;
+    newRoute.path = (char **) malloc(sizeof(char *) * size);
+    newRoute.distances = (int *) malloc(sizeof(int) * size);
+    newRoute.size = size;
+    for (int i = 0; i < size; i++) {
+        newRoute.path[i] = NULL;
+        newRoute.distances[i] = 0;
+    }
+    return newRoute;
+}
+
+void addRoute(Route *route, const char *island, int distance) {
+    route->path[route->size] = strdup(island);
+    route->distances[route->size] = distance;
+    route->size++;
+}
+
+void printRoute(Route route) {
+    printf("========================================\n");
+    printf("Path: %s -> %s\n", route.path[0], route.path[route.size - 2]);
+    printf("Route: %s", route.path[0]);
+    int sum = 0;
+    for (int i = 1; i < route.size; i++) {
+        printf(" -> %s", route.path[i]);
+        sum += route.distances[i - 1];
+    }
+    printf("\nDistance: ");
+    for (int i = 0; i < route.size - 1; i++) {
+        printf("%d + ", route.distances[i]);
+    }
+    printf("%d = %d\n", route.distances[route.size - 2], sum + route.distances[route.size - 2]);
+    printf("========================================\n");
+}
+
+void findPaths(int **graph, Bridge *bridges, int numIslands, int from, int to, Route route, int *visited) {
+    visited[from] = 1;
+
+    addRoute(&route, bridges[from].island1, graph[from][to]);
+
+    if (from == to) {
+        printRoute(route);
+    } else {
+        for (int i = 0; i < numIslands; i++) {
+            if (graph[from][i] != INT_MAX && !visited[i]) {
+                Route newRoute = createRoute(route.size + 1);
+                memcpy(newRoute.path, route.path, sizeof(char *) * route.size);
+                memcpy(newRoute.distances, route.distances, sizeof(int) * (route.size - 1));
+                newRoute.path[route.size - 1] = strdup(bridges[from].island1); // Update path with current island
+                findPaths(graph, bridges, numIslands, i, to, newRoute, visited);
+            }
+        }
+    }
+
+    visited[from] = 0;
+    free(route.path[route.size - 1]);
+    route.size--;
+}
+
+int main(int argc, char *argv[]) {
+
+    Bridge *bridges;
+    int numIslands;
+
+    if (!parseInput("../hard", &bridges, &numIslands)) {
+        return EXIT_FAILURE;
+    }
+
+    char **islands = (char **)malloc(numIslands * sizeof(char *));
+    for (int i = 0; i < numIslands; i++) {
+        islands[i] = (char *)malloc(MAX_ISLAND_NAME * sizeof(char));
+        // Copy island names to the islands array
+        strcpy(islands[i], bridges[i].island1);
+    }
+
+    int **graph = initializeGraph(numIslands, INT_MAX);
+    populateGraph(graph, bridges, numBridges, islands, numIslands);
+    //display graph
+
+    for (int i = 0; i < numIslands; i++) {
+        for (int j = 0; j < numIslands; j++) {
+            printf("%d ", graph[i][j]);
+        }
+        printf("\n");
+    }
+
+
+//    for (int i = 0; i < numIslands; i++) {
+//        for (int j = i + 1; j < numIslands; j++) {
+//            if (graph[i][j] != INT_MAX) {
+//                int *visited = (int *) calloc(numIslands, sizeof(int));
+//                Route route = createRoute(1);
+//                findPaths(graph, bridges, numIslands, i, j, route, visited);
+//                free(visited);
+//            }
+//        }
+//    }
+
+    for (int i = 0; i < numIslands; i++) {
+        free(graph[i]);
+    }
+    free(graph);
+    free(bridges);
+
+    return EXIT_SUCCESS;
+}

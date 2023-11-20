@@ -1,8 +1,9 @@
-easy
-hard
-./cmake-build-debug
+.cmake-build-debug
 CMakeList.txt
 pathfinder
-./obj
-./libmx
+.obj
+.libmx
+harders
+easy
+hard
 
