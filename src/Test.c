@@ -1,7 +1,8 @@
-#include <stdio.h>
-#define INF 1000000000 // Infinity
-#define V 4
+#include "pathfinder.h"
 
+#define INT_MAX 1000
+#define i_count 4
+ 
 void printPath(int parent[], int i, int j) {
     if (i == j)
         printf("%d ", i);
@@ -16,52 +17,61 @@ void printPath(int parent[], int i, int j) {
 
 int main()
 {
-    // V represent number of vertices
-    int dist[V][V] = {{0, 12, 5,INF },
-                      {12, 0, INF, 3},
-                      {5, INF, INF, 2},
-                      {INF, 3, 2, 0}};
-    // Represent the graph using adjacency matrix
+    int graph[i_count][i_count] = {{0, 12, 5,INT_MAX },
+                      {12, 0, INT_MAX, 3},
+                      {5, INT_MAX, INT_MAX, 2},
+                      {INT_MAX, 3, 2, 0}};
 
-    // Apply the Floyd Warshall algorithm to find the shortest paths
-    int parent[V][V];
-    for (int i = 0; i < V; i++)
+    int parent[i_count][i_count];
+    for (int i = 0; i < i_count; i++)
     {
-        for (int j = 0; j < V; j++)
+        for (int j = 0; j < i_count; j++)
         {
-            if (dist[i][j] != INF && i != j)
+            if (graph[i][j] != INT_MAX && i != j)
                 parent[i][j] = i;
             else
                 parent[i][j] = -1;
         }
     }
-    // update the path and distance using the k vertex range from 0 to V-1.
-    for (int k = 0; k < V; k++)
+
+    // update the path and graphance using the k vertex range from 0 to i_count-1.
+    for (int k = 0; k < i_count; k++)
     {
-        for (int i = 0; i < V; i++)
+        for (int i = 0; i < i_count; i++)
         {
-            for (int j = 0; j < V; j++)
+            for (int j = 0; j < i_count; j++)
             {
-                if (dist[i][j] > dist[i][k] + dist[k][j])
+                if (graph[i][j] > graph[i][k] + graph[k][j])
                 {
-                    dist[i][j] = dist[i][k] + dist[k][j];
+                    graph[i][j] = graph[i][k] + graph[k][j];
                     parent[i][j] = parent[k][j];
                 }
             }
         }
     }
 
-    // Print shortest distances and paths between all pairs of vertices
-    for (int i = 0; i < V; i++)
+    for (int i = 0; i < i_count; i++)
     {
-        for (int j = 0; j < V; j++)
+        for (int j = 0; j < i_count; j++)
         {
-            printf("The Shortest distance between %d and %d is ", i, j);
-            if (dist[i][j] == INF)
-                printf("INF ");
-            else
-                printf("%d ", dist[i][j]);
+            printf("%d ", parent[i][j]);
+        }
 
+        printf("\n");
+    }
+
+    // Print shortest graphances and paths between all pairs of vertices
+    for (int i = 0; i < i_count; i++)
+    {
+        for (int j = 0; j < i_count; j++)
+        {
+
+            if (i == j) continue;
+            printf("The Shortest graphance between %d and %d is ", i, j);
+            if (graph[i][j] == INT_MAX)
+                printf("INT_MAX");
+            else
+                printf("%d ", graph[i][j]);
 
             printf("and the shortest path is:- ");
             printPath(parent[i], i, j);
@@ -69,6 +79,4 @@ int main()
         }
     }
 
-    return 0;
 }
-
