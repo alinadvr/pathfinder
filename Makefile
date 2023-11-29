@@ -14,7 +14,7 @@ LMXI:=	$(LMXD)/inc
 INC		=	pathfinder.h
 INCS	=	$(addprefix $(INCD)/, $(INC))
 
-SRC		=   main.c get_islands_arr.c floyd_warshall.c print_solution.c
+SRC		=   main.c get_islands_arr.c floyd_warshall.c print_solution.c is_int_in_str.c
 
 SRCS	=	$(addprefix $(SRCD)/, $(SRC))
 OBJS	=	$(addprefix $(OBJD)/, $(SRC:%.c=%.o))

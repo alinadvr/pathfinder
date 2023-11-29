@@ -1,15 +1,16 @@
 #include "pathfinder.h"
-#include <stdio.h>
 
 char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
 {
-    int i = 0, j = 0, k = 0, line_in = 1;
-    int bridges_sum = 0;
+    int i = 0, j = 0, k = 0, line_in = 1, bridges_sum = 0;
     char **islands = (char **) malloc((i_count + 1) * sizeof(char **));
-    islands[i_count] = NULL;
+    for (int i = 0; i <= i_count; i++)
+        islands[i] = NULL;
     char *line = mx_strnew(MAX_LINE_LENGTH);
 
-    while(mx_read_line(&line, MAX_LINE_LENGTH, '\n', fd) > 0)
+    int read_bytes = mx_read_line(&line, MAX_LINE_LENGTH, '\n', fd);
+
+    while(read_bytes > 0)
     {
         line_in++;
 
@@ -17,9 +18,9 @@ char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
         
         if (c_count != 1)
         {
-            mx_printstr("error: line [");
+            mx_printstr("error: line ");
             mx_printint(line_in);
-            mx_printstr("] is not valid");
+            mx_printstr(" is not valid\n");
             return NULL;
         }
 
@@ -27,9 +28,9 @@ char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
 
         if (bridge == NULL || bridge[0] == NULL || bridge[1] == NULL)
         {
-            mx_printstr("error: line [");
+            mx_printstr("error: line ");
             mx_printint(line_in);
-            mx_printstr("] is not valid");
+            mx_printstr(" is not valid\n");
             return NULL;
         }
 
@@ -37,9 +38,9 @@ char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
 
         if (bridge_length < 0)
         {
-            mx_printstr("error: line [");
+            mx_printstr("error: line ");
             mx_printint(line_in);
-            mx_printstr("] is not valid");
+            mx_printstr(" is not valid\n");
             return NULL;
         }
 
@@ -47,7 +48,7 @@ char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
 
         if (bridges_sum > INT_MAX || bridges_sum < 0)
         {
-            mx_printstr("sum of bridges lengths is too big");
+            mx_printstr("error: sum of bridges lengths is too big\n");
             return NULL;
         }
 
@@ -55,9 +56,9 @@ char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
 
         if (h_count != 1)
         {
-            mx_printstr("error: line [");
+            mx_printstr("error: line ");
             mx_printint(line_in);
-            mx_printstr("] is not valid");
+            mx_printstr(" is not valid\n");
             return NULL;
         }
 
@@ -65,9 +66,17 @@ char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
 
         if (current_islands == NULL || current_islands[0] == NULL || current_islands[1] == NULL)
         {
-            mx_printstr("error: line [");
+            mx_printstr("error: line ");
             mx_printint(line_in);
-            mx_printstr("] is not valid");
+            mx_printstr(" is not valid\n");
+            return NULL;
+        }
+
+        if (is_int_in_str(current_islands[0]) || is_int_in_str(current_islands[1]))
+        {
+            mx_printstr("error: line ");
+            mx_printint(line_in);
+            mx_printstr(" is not valid\n");
             return NULL;
         }
 
@@ -91,15 +100,17 @@ char **get_islands_arr(int fd, int i_count, int graph[i_count][i_count])
         else
             j = island_index_2;
 
-        if (k >= i_count || j >= i_count)
+        read_bytes = mx_read_line(&line, MAX_LINE_LENGTH, '\n', fd);
+
+        if ((read_bytes <= 0 && i != i_count) || i_count < i)
         {
-            mx_printstr("error: invalid number of islands");
+            mx_printstr("error: invalid number of islands\n");
             return NULL;
         }
 
         if (graph[k][j] != INT_MAX)
         {
-            mx_printstr("error: duplicate bridges");
+            mx_printstr("error: duplicate bridges\n");
             return NULL;
         }
 

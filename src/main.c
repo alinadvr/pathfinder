@@ -4,7 +4,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        mx_printstr("error: invalid number of command-line arguments");
+        mx_printstr("error: invalid number of command-line arguments\n");
         return 1;
     }
 
@@ -13,9 +13,9 @@ int main(int argc, char *argv[])
 
     if (fd == -1)
     {
-        mx_printstr("error: file [");
+        mx_printstr("error: file ");
         mx_printstr(file_name);
-        mx_printstr("] does not exist");
+        mx_printstr(" does not exist\n");
         close(fd);
         return 1;
     }
@@ -24,9 +24,9 @@ int main(int argc, char *argv[])
 
     if (size < 1)
     {
-        mx_printstr("error: file [");
+        mx_printstr("error: file ");
         mx_printstr(file_name);
-        mx_printstr("] is empty");
+        mx_printstr(" is empty\n");
         close(fd);
         return 1;
     }
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
     if (i_count < 1)
     {
-        mx_printstr("error: line 1 is not valid");
+        mx_printstr("error: line 1 is not valid\n");
         close(fd);
         return 1;
     }
@@ -58,16 +58,6 @@ int main(int argc, char *argv[])
 
     if (islands == NULL)
         return 1;
-
-    int i = 0;
-    while (islands[i] != NULL)
-        i++;
-
-    if (i != i_count)
-    {
-        mx_printstr("error: invalid number of islands");
-        return 1;
-    }
 
     int dist[i_count][i_count];
     int path[i_count][i_count];
